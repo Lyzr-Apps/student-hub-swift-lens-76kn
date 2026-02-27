@@ -69,22 +69,22 @@ function getCategoryIcon(category: string) {
 function getCategoryStyle(category: string) {
   const cat = category?.toLowerCase() || ''
   if (cat.includes('exam') || cat.includes('academic') || cat.includes('assignment') || cat.includes('project') || cat.includes('deadline')) {
-    return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+    return 'bg-emerald-100 text-emerald-700 border-emerald-200'
   }
   if (cat.includes('career') || cat.includes('internship') || cat.includes('job')) {
-    return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+    return 'bg-sky-100 text-sky-700 border-sky-200'
   }
   if (cat.includes('research') || cat.includes('college')) {
-    return 'bg-teal-500/20 text-teal-400 border-teal-500/30'
+    return 'bg-teal-100 text-teal-700 border-teal-200'
   }
-  return 'bg-lime-500/20 text-lime-400 border-lime-500/30'
+  return 'bg-lime-100 text-lime-700 border-lime-200'
 }
 
 function getStatusDot(status: string) {
   const s = status?.toLowerCase() || ''
-  if (s === 'overdue') return 'bg-red-400'
+  if (s === 'overdue') return 'bg-red-500'
   if (s === 'completed') return 'bg-muted-foreground'
-  return 'bg-emerald-400'
+  return 'bg-emerald-500'
 }
 
 function getStatusLabel(status: string) {
@@ -173,7 +173,7 @@ export default function TrackerSection({
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
-          <HiOutlineClipboardDocumentList className="h-5 w-5 text-emerald-400" />
+          <HiOutlineClipboardDocumentList className="h-5 w-5 text-primary" />
           My Tracker
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -184,11 +184,11 @@ export default function TrackerSection({
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-          <TabsList className="bg-secondary/50 border border-border/50">
-            <TabsTrigger value="all" className="text-xs data-[state=active]:bg-emerald-600 data-[state=active]:text-white">All</TabsTrigger>
-            <TabsTrigger value="academics" className="text-xs data-[state=active]:bg-emerald-600 data-[state=active]:text-white">Academics</TabsTrigger>
-            <TabsTrigger value="career" className="text-xs data-[state=active]:bg-emerald-600 data-[state=active]:text-white">Career</TabsTrigger>
-            <TabsTrigger value="research" className="text-xs data-[state=active]:bg-emerald-600 data-[state=active]:text-white">Research</TabsTrigger>
+          <TabsList className="bg-secondary border border-border">
+            <TabsTrigger value="all" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">All</TabsTrigger>
+            <TabsTrigger value="academics" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Academics</TabsTrigger>
+            <TabsTrigger value="career" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Career</TabsTrigger>
+            <TabsTrigger value="research" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Research</TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="relative flex-1 w-full sm:max-w-xs">
@@ -197,7 +197,7 @@ export default function TrackerSection({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search items..."
-            className="pl-9 bg-secondary/50 border-border/50 text-sm"
+            className="pl-9 bg-secondary/50 border-border text-sm"
           />
         </div>
       </div>
@@ -217,7 +217,7 @@ export default function TrackerSection({
           {allItems.length === 0 && (
             <button
               onClick={onNavigateChat}
-              className="mt-4 px-4 py-2 text-sm rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition-colors"
+              className="mt-4 px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               Go to Chat
             </button>
@@ -228,7 +228,7 @@ export default function TrackerSection({
           {filteredItems.map((item, i) => (
             <Card
               key={`item-${i}`}
-              className="bg-card/85 backdrop-blur-sm border border-white/[0.18] hover:border-emerald-500/20 transition-all duration-200"
+              className="bg-card border border-border hover:border-primary/25 transition-all duration-200 shadow-sm"
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -245,7 +245,7 @@ export default function TrackerSection({
                         <ul className="mt-2 space-y-0.5">
                           {item.key_facts.slice(0, 3).map((fact, fi) => (
                             <li key={fi} className="text-[10px] text-foreground/70 flex items-start gap-1">
-                              <span className="text-emerald-400">-</span>
+                              <span className="text-primary">-</span>
                               {fact}
                             </li>
                           ))}

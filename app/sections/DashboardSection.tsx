@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,6 +28,8 @@ import {
   HiOutlinePlay,
   HiOutlinePause,
   HiOutlineChatBubbleLeftRight,
+  HiOutlineArrowRight,
+  HiOutlineClipboardDocumentList,
 } from 'react-icons/hi2'
 
 // Types
@@ -97,6 +99,12 @@ const SAMPLE_DIGEST: DigestData = {
   summary: 'You have 2 urgent items due today and tomorrow, plus 3 more coming up this week.',
 }
 
+const SAMPLE_TRACKED: TrackedItem[] = [
+  { title: 'Physics Lab Report', category: 'Assignment', date: '2026-02-27', description: 'Lab report for experiment #5', status: 'upcoming' },
+  { title: 'Calculus Quiz', category: 'Exam', date: '2026-02-28', description: 'Chapter 5-7 quiz', status: 'upcoming' },
+  { title: 'CS Project Milestone 2', category: 'Project', date: '2026-03-02', description: 'Submit database schema and API design', status: 'upcoming' },
+]
+
 function getCategoryIcon(category: string) {
   const cat = category?.toLowerCase() || ''
   if (cat.includes('exam') || cat.includes('academic') || cat.includes('assignment') || cat.includes('project')) {
@@ -114,23 +122,30 @@ function getCategoryIcon(category: string) {
 function getCategoryStyle(category: string) {
   const cat = category?.toLowerCase() || ''
   if (cat.includes('exam') || cat.includes('academic') || cat.includes('assignment') || cat.includes('project')) {
-    return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+    return 'bg-emerald-100 text-emerald-700 border-emerald-200'
   }
   if (cat.includes('career') || cat.includes('internship') || cat.includes('job')) {
-    return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+    return 'bg-sky-100 text-sky-700 border-sky-200'
   }
   if (cat.includes('research') || cat.includes('college')) {
-    return 'bg-teal-500/20 text-teal-400 border-teal-500/30'
+    return 'bg-teal-100 text-teal-700 border-teal-200'
   }
-  return 'bg-lime-500/20 text-lime-400 border-lime-500/30'
+  return 'bg-lime-100 text-lime-700 border-lime-200'
 }
 
 function getUrgencyStyle(urgency: string) {
   const u = urgency?.toLowerCase() || ''
-  if (u === 'overdue') return 'bg-red-500/20 text-red-400 border-red-500/30'
-  if (u === 'today') return 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-  if (u === 'tomorrow') return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-  return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+  if (u === 'overdue') return 'bg-red-100 text-red-700 border-red-200'
+  if (u === 'today') return 'bg-orange-100 text-orange-700 border-orange-200'
+  if (u === 'tomorrow') return 'bg-amber-100 text-amber-700 border-amber-200'
+  return 'bg-emerald-100 text-emerald-700 border-emerald-200'
+}
+
+function getStatusDot(status: string) {
+  const s = status?.toLowerCase() || ''
+  if (s === 'overdue') return 'bg-red-500'
+  if (s === 'completed') return 'bg-muted-foreground'
+  return 'bg-emerald-500'
 }
 
 export default function DashboardSection({
@@ -242,15 +257,43 @@ export default function DashboardSection({
   }
 
   const displayDigest = showSample ? SAMPLE_DIGEST : digestData
-  const totalTracked = trackedItems.length + researchItems.length
+
+  // Compute stats from ACTUAL tracked items (the real data source)
+  const displayTracked = showSample && trackedItems.length === 0 ? SAMPLE_TRACKED : trackedItems
+  const liveStats = useMemo(() => {
+    const assignments = displayTracked.filter(t => {
+      const c = t.category?.toLowerCase() || ''
+      return c.includes('assignment')
+    }).length
+    const exams = displayTracked.filter(t => {
+      const c = t.category?.toLowerCase() || ''
+      return c.includes('exam')
+    }).length
+    const events = displayTracked.filter(t => {
+      const c = t.category?.toLowerCase() || ''
+      return c.includes('event') || c.includes('extracurricular')
+    }).length
+    const projects = displayTracked.filter(t => {
+      const c = t.category?.toLowerCase() || ''
+      return c.includes('project')
+    }).length
+    return {
+      assignments: assignments + projects,
+      exams,
+      events,
+      research: researchItems.length,
+      total: displayTracked.length + researchItems.length,
+    }
+  }, [displayTracked, researchItems])
+
   const recentChats = chatMessages.filter((m) => m.sender === 'assistant').slice(-3)
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Greeting Banner */}
-      <div className="bg-card/85 backdrop-blur-sm border border-white/[0.18] rounded-[0.625rem] p-6">
+      <div className="bg-card rounded-[0.625rem] border border-border p-6 shadow-sm">
         <h1 className="text-2xl font-semibold text-foreground font-sans">
-          Welcome to StudyHub
+          Welcome to StudentLife
         </h1>
         <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
           <HiOutlineCalendar className="h-4 w-4" />
@@ -262,12 +305,59 @@ export default function DashboardSection({
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left Column - 3/5 */}
         <div className="lg:col-span-3 space-y-6">
+          {/* YOUR TRACKED ITEMS - directly from shared state */}
+          {displayTracked.length > 0 && (
+            <Card className="bg-card border border-border shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <HiOutlineClipboardDocumentList className="h-5 w-5 text-primary" />
+                    Your Tracked Items
+                  </CardTitle>
+                  <span className="text-xs text-muted-foreground">{displayTracked.length} item{displayTracked.length !== 1 ? 's' : ''}</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {displayTracked.slice(0, 5).map((item, i) => (
+                    <div
+                      key={`tracked-dash-${i}`}
+                      className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <span className={`h-2 w-2 rounded-full flex-shrink-0 ${getStatusDot(item?.status ?? '')}`} />
+                        {getCategoryIcon(item?.category ?? '')}
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{item?.title ?? 'Untitled'}</p>
+                          <p className="text-xs text-muted-foreground truncate">{item?.description ?? ''}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                        <Badge className={`text-[10px] px-2 py-0.5 border ${getCategoryStyle(item?.category ?? '')}`}>
+                          {item?.category ?? 'General'}
+                        </Badge>
+                        {item?.date && (
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">{item.date}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {displayTracked.length > 5 && (
+                    <p className="text-xs text-muted-foreground text-center pt-1">
+                      +{displayTracked.length - 5} more items in My Tracker
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Daily Digest Card */}
-          <Card className="bg-card/85 backdrop-blur-sm border border-white/[0.18]">
+          <Card className="bg-card border border-border shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <HiOutlineSparkles className="h-5 w-5 text-emerald-400" />
+                  <HiOutlineSparkles className="h-5 w-5 text-primary" />
                   Daily Digest
                 </CardTitle>
                 {!showSample && !digestData && (
@@ -292,7 +382,7 @@ export default function DashboardSection({
             </CardHeader>
             <CardContent>
               {digestError && (
-                <p className="text-sm text-red-400">{digestError}</p>
+                <p className="text-sm text-red-600">{digestError}</p>
               )}
               {!displayDigest && !digestLoading && !digestError && (
                 <div className="text-center py-8 text-muted-foreground">
@@ -309,12 +399,9 @@ export default function DashboardSection({
               )}
               {displayDigest && (
                 <div className="space-y-5">
-                  {/* Greeting */}
                   {displayDigest.greeting && (
                     <p className="text-sm text-foreground">{displayDigest.greeting}</p>
                   )}
-
-                  {/* Summary */}
                   {displayDigest.summary && (
                     <p className="text-sm text-muted-foreground italic">{displayDigest.summary}</p>
                   )}
@@ -322,7 +409,7 @@ export default function DashboardSection({
                   {/* Urgent Items */}
                   {Array.isArray(displayDigest.urgent_items) && displayDigest.urgent_items.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-red-400 flex items-center gap-1.5 mb-3">
+                      <h3 className="text-sm font-semibold text-red-600 flex items-center gap-1.5 mb-3">
                         <HiOutlineExclamationTriangle className="h-4 w-4" />
                         Urgent Items
                       </h3>
@@ -330,7 +417,7 @@ export default function DashboardSection({
                         {displayDigest.urgent_items.map((item, i) => (
                           <div
                             key={`urgent-${i}`}
-                            className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50"
+                            className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border"
                           >
                             <div className="flex items-center gap-3">
                               {getCategoryIcon(item?.category ?? '')}
@@ -357,14 +444,14 @@ export default function DashboardSection({
                   {Array.isArray(displayDigest.upcoming_items) && displayDigest.upcoming_items.length > 0 && (
                     <div>
                       <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
-                        <HiOutlineCalendar className="h-4 w-4 text-emerald-400" />
+                        <HiOutlineCalendar className="h-4 w-4 text-primary" />
                         Upcoming This Week
                       </h3>
                       <div className="space-y-2">
                         {displayDigest.upcoming_items.map((item, i) => (
                           <div
                             key={`upcoming-${i}`}
-                            className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50"
+                            className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border"
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               {getCategoryIcon(item?.category ?? '')}
@@ -387,8 +474,8 @@ export default function DashboardSection({
 
                   {/* Tip of the Day */}
                   {displayDigest.tip_of_the_day && (
-                    <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                      <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 mb-1">
+                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/15">
+                      <p className="text-xs font-semibold text-primary flex items-center gap-1.5 mb-1">
                         <HiOutlineSparkles className="h-3.5 w-3.5" />
                         Tip of the Day
                       </p>
@@ -403,8 +490,8 @@ export default function DashboardSection({
 
         {/* Right Column - 2/5 */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Quick Stats */}
-          <Card className="bg-card/85 backdrop-blur-sm border border-white/[0.18]">
+          {/* Quick Stats - ALWAYS uses live trackedItems data */}
+          <Card className="bg-card border border-border shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold">Quick Stats</CardTitle>
             </CardHeader>
@@ -413,28 +500,28 @@ export default function DashboardSection({
                 {[
                   {
                     label: 'Assignments',
-                    value: showSample ? SAMPLE_DIGEST.stats.assignments_count : (displayDigest?.stats?.assignments_count ?? trackedItems.filter(t => t.category?.toLowerCase().includes('assignment')).length),
-                    icon: <HiOutlineAcademicCap className="h-4 w-4 text-emerald-400" />,
+                    value: liveStats.assignments,
+                    icon: <HiOutlineAcademicCap className="h-4 w-4 text-emerald-600" />,
                   },
                   {
                     label: 'Exams',
-                    value: showSample ? SAMPLE_DIGEST.stats.exams_count : (displayDigest?.stats?.exams_count ?? trackedItems.filter(t => t.category?.toLowerCase().includes('exam')).length),
-                    icon: <HiOutlineAcademicCap className="h-4 w-4 text-cyan-400" />,
+                    value: liveStats.exams,
+                    icon: <HiOutlineAcademicCap className="h-4 w-4 text-sky-600" />,
                   },
                   {
                     label: 'Events',
-                    value: showSample ? SAMPLE_DIGEST.stats.events_count : (displayDigest?.stats?.events_count ?? trackedItems.filter(t => t.category?.toLowerCase().includes('event')).length),
-                    icon: <HiOutlineCalendar className="h-4 w-4 text-teal-400" />,
+                    value: liveStats.events,
+                    icon: <HiOutlineCalendar className="h-4 w-4 text-teal-600" />,
                   },
                   {
                     label: 'Research',
-                    value: researchItems.length,
-                    icon: <HiOutlineBeaker className="h-4 w-4 text-lime-400" />,
+                    value: liveStats.research,
+                    icon: <HiOutlineBeaker className="h-4 w-4 text-lime-600" />,
                   },
                 ].map((stat, i) => (
                   <div
                     key={`stat-${i}`}
-                    className="p-3 rounded-lg bg-secondary/50 border border-border/50 text-center"
+                    className="p-3 rounded-lg bg-secondary/50 border border-border text-center"
                   >
                     <div className="flex items-center justify-center mb-1">{stat.icon}</div>
                     <p className="text-2xl font-bold text-foreground">{stat.value}</p>
@@ -446,11 +533,11 @@ export default function DashboardSection({
           </Card>
 
           {/* Recent Chat Preview */}
-          <Card className="bg-card/85 backdrop-blur-sm border border-white/[0.18]">
+          <Card className="bg-card border border-border shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <HiOutlineChatBubbleLeftRight className="h-4 w-4 text-emerald-400" />
+                  <HiOutlineChatBubbleLeftRight className="h-4 w-4 text-primary" />
                   Recent Chats
                 </CardTitle>
               </div>
@@ -460,7 +547,7 @@ export default function DashboardSection({
                 <p className="text-xs text-muted-foreground text-center py-4">No chats yet. Start a conversation!</p>
               ) : (
                 <div className="space-y-2">
-                  {(showSample
+                  {(showSample && recentChats.length === 0
                     ? [
                         { id: 's1', sender: 'assistant' as const, content: 'I have added your Physics Lab Report due Feb 27 to your tracker.', timestamp: '', category: 'academic' },
                         { id: 's2', sender: 'assistant' as const, content: 'Here are the top 5 engineering colleges with strong CS programs...', timestamp: '', category: 'career' },
@@ -469,7 +556,7 @@ export default function DashboardSection({
                   ).map((msg) => (
                     <div
                       key={msg.id}
-                      className="p-2.5 rounded-lg bg-secondary/30 border border-border/30"
+                      className="p-2.5 rounded-lg bg-secondary/30 border border-border"
                     >
                       <p className="text-xs text-foreground/90 line-clamp-2">{msg.content}</p>
                       {msg.category && (
@@ -485,10 +572,10 @@ export default function DashboardSection({
           </Card>
 
           {/* Schedule Manager */}
-          <Card className="bg-card/85 backdrop-blur-sm border border-white/[0.18]">
+          <Card className="bg-card border border-border shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <HiOutlineClock className="h-4 w-4 text-emerald-400" />
+                <HiOutlineClock className="h-4 w-4 text-primary" />
                 Daily Digest Schedule
               </CardTitle>
             </CardHeader>
@@ -521,7 +608,7 @@ export default function DashboardSection({
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className={`h-2 w-2 rounded-full ${schedule?.is_active ? 'bg-emerald-400' : 'bg-muted-foreground'}`} />
+                    <span className={`h-2 w-2 rounded-full ${schedule?.is_active ? 'bg-emerald-500' : 'bg-muted-foreground'}`} />
                     <span className="text-[10px] text-muted-foreground">
                       {schedule?.is_active ? 'Schedule is active' : 'Schedule is paused'}
                     </span>
@@ -573,7 +660,7 @@ export default function DashboardSection({
                             <span className="text-muted-foreground">
                               {log.executed_at ? new Date(log.executed_at).toLocaleString() : 'Unknown'}
                             </span>
-                            <span className={log.success ? 'text-emerald-400' : 'text-red-400'}>
+                            <span className={log.success ? 'text-emerald-600' : 'text-red-600'}>
                               {log.success ? 'Success' : 'Failed'}
                             </span>
                           </div>
@@ -591,10 +678,12 @@ export default function DashboardSection({
       {/* Floating Chat Button */}
       <button
         onClick={onNavigateChat}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 flex items-center justify-center transition-all duration-300 hover:scale-105 z-40"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 flex items-center justify-center transition-all duration-300 hover:scale-105 z-40"
       >
         <HiOutlineChatBubbleLeftRight className="h-6 w-6" />
       </button>
     </div>
   )
 }
+
+// end of DashboardSection

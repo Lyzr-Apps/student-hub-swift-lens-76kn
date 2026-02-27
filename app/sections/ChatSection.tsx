@@ -104,22 +104,22 @@ const SUGGESTION_CHIPS = [
 function getCategoryStyle(category: string) {
   const cat = category?.toLowerCase() || ''
   if (cat.includes('academic') || cat.includes('assignment') || cat.includes('exam')) {
-    return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+    return 'bg-emerald-100 text-emerald-700 border-emerald-200'
   }
   if (cat.includes('career') || cat.includes('internship')) {
-    return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+    return 'bg-sky-100 text-sky-700 border-sky-200'
   }
   if (cat.includes('research') || cat.includes('college') || cat.includes('mixed')) {
-    return 'bg-teal-500/20 text-teal-400 border-teal-500/30'
+    return 'bg-teal-100 text-teal-700 border-teal-200'
   }
-  return 'bg-lime-500/20 text-lime-400 border-lime-500/30'
+  return 'bg-lime-100 text-lime-700 border-lime-200'
 }
 
 function getStatusDot(status: string) {
   const s = status?.toLowerCase() || ''
-  if (s === 'overdue') return 'bg-red-400'
+  if (s === 'overdue') return 'bg-red-500'
   if (s === 'completed') return 'bg-muted-foreground'
-  return 'bg-emerald-400'
+  return 'bg-emerald-500'
 }
 
 function renderMarkdown(text: string) {
@@ -150,13 +150,13 @@ function formatInline(text: string) {
 function ExpandableResearch({ item }: { item: ResearchItem }) {
   const [expanded, setExpanded] = useState(false)
   return (
-    <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/40">
+    <div className="p-2.5 rounded-lg bg-secondary/60 border border-border">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between text-left"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <HiOutlineBeaker className="h-3.5 w-3.5 text-teal-400 flex-shrink-0" />
+          <HiOutlineBeaker className="h-3.5 w-3.5 text-teal-600 flex-shrink-0" />
           <span className="text-sm font-medium text-foreground truncate">{item?.title ?? 'Untitled'}</span>
         </div>
         {expanded ? <HiOutlineChevronUp className="h-3.5 w-3.5 flex-shrink-0" /> : <HiOutlineChevronDown className="h-3.5 w-3.5 flex-shrink-0" />}
@@ -168,7 +168,7 @@ function ExpandableResearch({ item }: { item: ResearchItem }) {
             <ul className="space-y-0.5">
               {item.key_facts.map((fact, fi) => (
                 <li key={fi} className="text-xs text-foreground/80 flex items-start gap-1.5">
-                  <span className="text-emerald-400 mt-0.5">-</span>
+                  <span className="text-primary mt-0.5">-</span>
                   {fact}
                 </li>
               ))}
@@ -250,7 +250,7 @@ export default function ChatSection({
 
         setChatMessages((prev) => [...prev, assistantMsg])
 
-        // Append to global tracked/research items
+        // Append to global tracked/research items - these flow to Dashboard and Tracker
         if (newTracked.length > 0) {
           setTrackedItems((prev) => {
             const existing = new Set(prev.map((t) => t.title?.toLowerCase()))
@@ -301,7 +301,7 @@ export default function ChatSection({
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
         {displayMessages.length === 0 && !showSample && (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <HiOutlineSparkles className="h-12 w-12 text-emerald-400/50 mb-4" />
+            <HiOutlineSparkles className="h-12 w-12 text-primary/40 mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">How can I help you today?</h2>
             <p className="text-sm text-muted-foreground mb-8 max-w-md">
               Ask me anything -- track an assignment, explore a career path, plan your study week, or research colleges.
@@ -311,7 +311,7 @@ export default function ChatSection({
                 <button
                   key={chip}
                   onClick={() => handleSend(chip)}
-                  className="p-3 text-left text-sm rounded-lg bg-card/85 backdrop-blur-sm border border-white/[0.18] text-foreground/80 hover:text-foreground hover:border-emerald-500/30 transition-all duration-200"
+                  className="p-3 text-left text-sm rounded-lg bg-card border border-border text-foreground/80 hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
                 >
                   {chip}
                 </button>
@@ -328,8 +328,8 @@ export default function ChatSection({
             <div
               className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                 msg.sender === 'user'
-                  ? 'bg-emerald-600 text-white rounded-br-sm'
-                  : 'bg-card/85 backdrop-blur-sm border border-white/[0.18] rounded-bl-sm'
+                  ? 'bg-primary text-primary-foreground rounded-br-sm'
+                  : 'bg-card border border-border rounded-bl-sm shadow-sm'
               }`}
             >
               {/* Category badge for assistant */}
@@ -351,7 +351,7 @@ export default function ChatSection({
                   {msg.trackedItems.map((item, ti) => (
                     <div
                       key={`tracked-${ti}`}
-                      className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-border/40"
+                      className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-border"
                     >
                       <span className={`h-2 w-2 rounded-full flex-shrink-0 ${getStatusDot(item?.status ?? '')}`} />
                       <div className="min-w-0 flex-1">
@@ -378,12 +378,12 @@ export default function ChatSection({
 
               {/* Recommendations */}
               {msg.sender === 'assistant' && Array.isArray(msg.recommendations) && msg.recommendations.length > 0 && (
-                <div className="mt-3 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                  <p className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider mb-1">Recommendations</p>
+                <div className="mt-3 p-2.5 rounded-lg bg-primary/5 border border-primary/15">
+                  <p className="text-[10px] text-primary font-semibold uppercase tracking-wider mb-1">Recommendations</p>
                   <ul className="space-y-0.5">
                     {msg.recommendations.map((rec, ri) => (
                       <li key={ri} className="text-xs text-foreground/80 flex items-start gap-1.5">
-                        <HiOutlineSparkles className="h-3 w-3 text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <HiOutlineSparkles className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
                         {rec}
                       </li>
                     ))}
@@ -392,7 +392,7 @@ export default function ChatSection({
               )}
 
               {/* Timestamp */}
-              <p className={`text-[9px] mt-2 ${msg.sender === 'user' ? 'text-white/60' : 'text-muted-foreground'}`}>
+              <p className={`text-[9px] mt-2 ${msg.sender === 'user' ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
                 {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
               </p>
             </div>
@@ -402,11 +402,11 @@ export default function ChatSection({
         {/* Loading indicator */}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-card/85 backdrop-blur-sm border border-white/[0.18] rounded-2xl rounded-bl-sm px-4 py-3">
+            <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
@@ -414,7 +414,7 @@ export default function ChatSection({
       </div>
 
       {/* Input bar */}
-      <div className="border-t border-border/50 p-4 bg-card/50 backdrop-blur-sm">
+      <div className="border-t border-border p-4 bg-card">
         <div className="flex items-center gap-3 max-w-4xl mx-auto">
           <Input
             value={input}
@@ -422,13 +422,13 @@ export default function ChatSection({
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything -- track an assignment, explore a career, plan your week..."
             disabled={loading}
-            className="flex-1 bg-secondary/50 border-border/50 focus:border-emerald-500/50 text-sm"
+            className="flex-1 bg-secondary/50 border-border focus:border-primary/50 text-sm"
           />
           <Button
             onClick={() => handleSend()}
             disabled={loading || !input.trim()}
             size="icon"
-            className="bg-emerald-600 hover:bg-emerald-500 text-white h-10 w-10 rounded-full flex-shrink-0"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-10 rounded-full flex-shrink-0"
           >
             <HiOutlinePaperAirplane className="h-4 w-4" />
           </Button>

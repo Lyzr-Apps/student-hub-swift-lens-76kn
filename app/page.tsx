@@ -48,7 +48,7 @@ class ErrorBoundary extends React.Component<
 }
 
 // ---------- Types ----------
-interface TrackedItem {
+export interface TrackedItem {
   title: string
   category: string
   date: string
@@ -56,7 +56,7 @@ interface TrackedItem {
   status: string
 }
 
-interface ResearchItem {
+export interface ResearchItem {
   title: string
   category: string
   summary: string
@@ -64,7 +64,7 @@ interface ResearchItem {
   source: string
 }
 
-interface ChatMessage {
+export interface ChatMessage {
   id: string
   sender: 'user' | 'assistant'
   content: string
@@ -108,14 +108,14 @@ function Sidebar({
   ]
 
   return (
-    <div className="w-64 h-screen flex flex-col bg-card/50 backdrop-blur-sm border-r border-border/50 flex-shrink-0">
+    <div className="w-64 h-screen flex flex-col bg-card border-r border-border flex-shrink-0">
       {/* Logo */}
       <div className="p-5 flex items-center gap-3">
-        <div className="h-9 w-9 rounded-lg bg-emerald-600 flex items-center justify-center">
-          <HiOutlineAcademicCap className="h-5 w-5 text-white" />
+        <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
+          <HiOutlineAcademicCap className="h-5 w-5 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-lg font-semibold text-foreground font-sans tracking-tight">StudyHub</h1>
+          <h1 className="text-lg font-semibold text-foreground font-sans tracking-tight">StudentLife</h1>
           <p className="text-[10px] text-muted-foreground -mt-0.5">Student Life Assistant</p>
         </div>
       </div>
@@ -128,7 +128,7 @@ function Sidebar({
           <button
             key={item.key}
             onClick={() => setActivePage(item.key)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${activePage === item.key ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/20' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${activePage === item.key ? 'bg-primary/10 text-primary font-semibold border border-primary/20' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}
           >
             {item.icon}
             <span className="font-medium">{item.label}</span>
@@ -137,7 +137,7 @@ function Sidebar({
       </nav>
 
       {/* Sample Data Toggle */}
-      <div className="px-4 py-3 border-t border-border/30">
+      <div className="px-4 py-3 border-t border-border">
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">Sample Data</span>
           <Switch checked={showSample} onCheckedChange={setShowSample} />
@@ -145,7 +145,7 @@ function Sidebar({
       </div>
 
       {/* Agent Status */}
-      <div className="px-4 py-3 border-t border-border/30">
+      <div className="px-4 py-3 border-t border-border">
         <button
           onClick={() => setShowAgents(!showAgents)}
           className="w-full flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -153,14 +153,14 @@ function Sidebar({
           <HiOutlineCog6Tooth className="h-4 w-4" />
           <span>Agent Status</span>
           {activeAgentId && (
-            <span className="ml-auto h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="ml-auto h-2 w-2 rounded-full bg-primary animate-pulse" />
           )}
         </button>
         {showAgents && (
           <div className="mt-3 space-y-2">
             {AGENT_INFO.map((agent) => (
               <div key={agent.id} className="flex items-start gap-2">
-                <span className={`h-1.5 w-1.5 rounded-full mt-1.5 flex-shrink-0 ${activeAgentId === agent.id ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground/50'}`} />
+                <span className={`h-1.5 w-1.5 rounded-full mt-1.5 flex-shrink-0 ${activeAgentId === agent.id ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
                 <div className="min-w-0">
                   <p className="text-[10px] font-medium text-foreground truncate">{agent.name}</p>
                   <p className="text-[9px] text-muted-foreground truncate">{agent.desc}</p>
@@ -189,12 +189,12 @@ function MobileNav({
   ]
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border/50 flex items-center justify-around py-2 px-4">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border flex items-center justify-around py-2 px-4">
       {navItems.map((item) => (
         <button
           key={item.key}
           onClick={() => setActivePage(item.key)}
-          className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${activePage === item.key ? 'text-emerald-400' : 'text-muted-foreground'}`}
+          className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${activePage === item.key ? 'text-primary' : 'text-muted-foreground'}`}
         >
           {item.icon}
           <span className="text-[10px] font-medium">{item.label}</span>
@@ -238,12 +238,12 @@ export default function Page() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
           {/* Mobile Header */}
-          <div className="lg:hidden flex items-center justify-between p-4 border-b border-border/50 bg-card/50">
+          <div className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-emerald-600 flex items-center justify-center">
-                <HiOutlineAcademicCap className="h-4 w-4 text-white" />
+              <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
+                <HiOutlineAcademicCap className="h-4 w-4 text-primary-foreground" />
               </div>
-              <h1 className="text-base font-semibold text-foreground">StudyHub</h1>
+              <h1 className="text-base font-semibold text-foreground">StudentLife</h1>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-muted-foreground">Sample</span>
