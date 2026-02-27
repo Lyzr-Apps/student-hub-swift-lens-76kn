@@ -149,6 +149,53 @@ function getStatusDot(status: string) {
   return 'bg-emerald-500'
 }
 
+/**
+ * Deep-extract structured data from any Lyzr agent response.
+ * Handles double-stringified raw_response from manager-subagent pattern.
+ */
+function deepExtractAgentData(result: any): Record<string, any> | null {
+  function safeParse(str: any): any {
+    if (typeof str !== 'string') return null
+    try { return JSON.parse(str) } catch { return null }
+  }
+
+  // 1. Direct object at response.result
+  const rr = result?.response?.result
+  if (rr && typeof rr === 'object' && !Array.isArray(rr) && Object.keys(rr).length > 1) {
+    return rr
+  }
+
+  // 2. response.result is a string
+  if (typeof rr === 'string') {
+    const parsed = safeParse(rr)
+    if (parsed && typeof parsed === 'object') return parsed
+  }
+
+  // 3. raw_response (double-stringified)
+  if (result?.raw_response) {
+    const rawParsed = safeParse(result.raw_response)
+    if (rawParsed) {
+      if (typeof rawParsed.response === 'string') {
+        const inner = safeParse(rawParsed.response)
+        if (inner && typeof inner === 'object') return inner
+      }
+      if (rawParsed.response && typeof rawParsed.response === 'object') return rawParsed.response
+      if (Object.keys(rawParsed).length > 1) return rawParsed
+    }
+  }
+
+  // 4. response.message is stringified JSON
+  if (result?.response?.message) {
+    const parsed = safeParse(result.response.message)
+    if (parsed && typeof parsed === 'object') return parsed
+  }
+
+  // 5. Fall back to response.result even if it's just { text: "..." }
+  if (rr && typeof rr === 'object') return rr
+
+  return null
+}
+
 export default function DashboardSection({
   trackedItems,
   researchItems,
@@ -242,10 +289,7 @@ export default function DashboardSection({
     try {
       const result = await callAIAgent('Generate my daily digest summary for today', DIGEST_AGENT_ID, { session_id: sessionId })
       if (result.success) {
-        let data = result?.response?.result
-        if (typeof data === 'string') {
-          try { data = JSON.parse(data) } catch { data = { summary: data } }
-        }
+        const data = deepExtractAgentData(result)
         if (data) {
           setDigestData({
             greeting: data?.greeting ?? '',

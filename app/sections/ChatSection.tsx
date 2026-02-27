@@ -55,6 +55,113 @@ interface ChatSectionProps {
 
 const MANAGER_AGENT_ID = '69a15d2b6bd1afebfd1b9deb'
 
+/**
+ * Deep-extract structured data from agent response.
+ *
+ * The Lyzr manager-subagent pattern often returns structured data inside
+ * `raw_response` as double-stringified JSON rather than in `response.result`.
+ *
+ * Extraction priority:
+ * 1. `response.result` (direct object with tracked_items)
+ * 2. `response.result` parsed from string
+ * 3. `raw_response` → parse → `.response` → parse again (double-stringified)
+ * 4. `raw_response` → parse directly
+ * 5. `response.message` parsed from string
+ */
+function extractStructuredData(result: any): {
+  message: string
+  tracked_items: TrackedItem[]
+  research_items: ResearchItem[]
+  recommendations: string[]
+  category: string
+  summary: string
+} {
+  const empty = {
+    message: '',
+    tracked_items: [] as TrackedItem[],
+    research_items: [] as ResearchItem[],
+    recommendations: [] as string[],
+    category: 'general',
+    summary: '',
+  }
+
+  // Helper: check if an object has the structured fields we need
+  function hasStructuredFields(obj: any): boolean {
+    if (!obj || typeof obj !== 'object') return false
+    return Array.isArray(obj.tracked_items) || Array.isArray(obj.research_items)
+  }
+
+  // Helper: safely JSON.parse, returns null on failure
+  function safeParse(str: any): any {
+    if (typeof str !== 'string') return null
+    try { return JSON.parse(str) } catch { return null }
+  }
+
+  // Helper: build result from a structured data object
+  function buildFromData(data: any, fallbackMessage: string): typeof empty {
+    return {
+      message: data?.message || data?.text || fallbackMessage,
+      tracked_items: Array.isArray(data?.tracked_items) ? data.tracked_items : [],
+      research_items: Array.isArray(data?.research_items) ? data.research_items : [],
+      recommendations: Array.isArray(data?.recommendations) ? data.recommendations : [],
+      category: data?.category || 'general',
+      summary: data?.summary || '',
+    }
+  }
+
+  const responseResult = result?.response?.result
+  const fallbackText = responseResult?.text || result?.response?.message || ''
+
+  // 1. Direct object at response.result
+  if (hasStructuredFields(responseResult)) {
+    return buildFromData(responseResult, fallbackText)
+  }
+
+  // 2. response.result is a string that can be parsed
+  if (typeof responseResult === 'string') {
+    const parsed = safeParse(responseResult)
+    if (hasStructuredFields(parsed)) {
+      return buildFromData(parsed, fallbackText)
+    }
+  }
+
+  // 3. raw_response — the most common path for manager-subagent responses
+  if (result?.raw_response) {
+    const rawParsed = safeParse(result.raw_response)
+    if (rawParsed) {
+      // 3a. raw_response.response is itself a stringified JSON with tracked_items
+      if (typeof rawParsed.response === 'string') {
+        const innerParsed = safeParse(rawParsed.response)
+        if (hasStructuredFields(innerParsed)) {
+          return buildFromData(innerParsed, fallbackText)
+        }
+      }
+      // 3b. raw_response.response is already an object
+      if (hasStructuredFields(rawParsed.response)) {
+        return buildFromData(rawParsed.response, fallbackText)
+      }
+      // 3c. raw_response itself has the fields
+      if (hasStructuredFields(rawParsed)) {
+        return buildFromData(rawParsed, fallbackText)
+      }
+    }
+  }
+
+  // 4. response.message might be stringified JSON
+  if (result?.response?.message) {
+    const msgParsed = safeParse(result.response.message)
+    if (hasStructuredFields(msgParsed)) {
+      return buildFromData(msgParsed, fallbackText)
+    }
+  }
+
+  // 5. Nothing structured found — return whatever text we have
+  return {
+    ...empty,
+    message: fallbackText,
+  }
+}
+
 const SAMPLE_MESSAGES: ChatMessage[] = [
   {
     id: 'sample-1',
@@ -226,16 +333,13 @@ export default function ChatSection({
       const result = await callAIAgent(text, MANAGER_AGENT_ID, { session_id: sessionId })
 
       if (result.success) {
-        let data = result?.response?.result
-        if (typeof data === 'string') {
-          try { data = JSON.parse(data) } catch { data = { message: data } }
-        }
+        const structured = extractStructuredData(result)
 
-        const responseMessage = data?.message || data?.text || extractText(result.response) || 'I received your message.'
-        const newTracked = Array.isArray(data?.tracked_items) ? data.tracked_items : []
-        const newResearch = Array.isArray(data?.research_items) ? data.research_items : []
-        const recs = Array.isArray(data?.recommendations) ? data.recommendations : []
-        const category = data?.category || 'general'
+        const responseMessage = structured.message || extractText(result.response) || 'I received your message.'
+        const newTracked = structured.tracked_items
+        const newResearch = structured.research_items
+        const recs = structured.recommendations
+        const category = structured.category
 
         const assistantMsg: ChatMessage = {
           id: `assistant-${Date.now()}`,
