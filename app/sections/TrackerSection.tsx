@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -12,6 +13,7 @@ import {
   HiOutlineCalendar,
   HiOutlineMagnifyingGlass,
   HiOutlineClipboardDocumentList,
+  HiOutlineArrowPath,
 } from 'react-icons/hi2'
 
 // Types
@@ -36,6 +38,7 @@ interface TrackerSectionProps {
   researchItems: ResearchItem[]
   showSample: boolean
   onNavigateChat: () => void
+  onRefreshItems: () => void
 }
 
 const SAMPLE_TRACKED: TrackedItem[] = [
@@ -99,6 +102,7 @@ export default function TrackerSection({
   researchItems,
   showSample,
   onNavigateChat,
+  onRefreshItems,
 }: TrackerSectionProps) {
   const [activeTab, setActiveTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -171,14 +175,25 @@ export default function TrackerSection({
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
-          <HiOutlineClipboardDocumentList className="h-5 w-5 text-primary" />
-          My Tracker
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          All your tracked academic items and research in one place
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
+            <HiOutlineClipboardDocumentList className="h-5 w-5 text-primary" />
+            My Tracker
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            All your tracked academic items and research in one place
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onRefreshItems}
+          className="text-xs flex items-center gap-1.5"
+        >
+          <HiOutlineArrowPath className="h-3.5 w-3.5" />
+          Refresh
+        </Button>
       </div>
 
       {/* Filter Bar */}

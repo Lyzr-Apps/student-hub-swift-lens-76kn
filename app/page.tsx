@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -77,6 +77,50 @@ export interface ChatMessage {
 
 type PageView = 'dashboard' | 'chat' | 'tracker'
 
+// ---------- LocalStorage Helpers ----------
+const STORAGE_KEYS = {
+  trackedItems: 'studentlife_tracked_items',
+  researchItems: 'studentlife_research_items',
+  chatMessages: 'studentlife_chat_messages',
+  sessionId: 'studentlife_session_id',
+} as const
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback
+  try {
+    const stored = localStorage.getItem(key)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      return parsed as T
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return fallback
+}
+
+function saveToStorage<T>(key: string, value: T): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    // ignore storage errors (quota, etc.)
+  }
+}
+
+function getOrCreateSessionId(): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    const existing = localStorage.getItem(STORAGE_KEYS.sessionId)
+    if (existing) return existing
+    const newId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    localStorage.setItem(STORAGE_KEYS.sessionId, newId)
+    return newId
+  } catch {
+    return `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+  }
+}
+
 // ---------- Constants ----------
 const AGENT_INFO = [
   { id: '69a15d2b6bd1afebfd1b9deb', name: 'Student Life Manager', desc: 'Primary chat & coordination' },
@@ -92,19 +136,21 @@ function Sidebar({
   showSample,
   setShowSample,
   activeAgentId,
+  itemCount,
 }: {
   activePage: PageView
   setActivePage: (page: PageView) => void
   showSample: boolean
   setShowSample: (v: boolean) => void
   activeAgentId: string | null
+  itemCount: number
 }) {
   const [showAgents, setShowAgents] = useState(false)
 
-  const navItems: { key: PageView; label: string; icon: React.ReactNode }[] = [
+  const navItems: { key: PageView; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: 'dashboard', label: 'Dashboard', icon: <HiOutlineHome className="h-5 w-5" /> },
     { key: 'chat', label: 'Chat', icon: <HiOutlineChatBubbleLeftRight className="h-5 w-5" /> },
-    { key: 'tracker', label: 'My Tracker', icon: <HiOutlineClipboardDocumentList className="h-5 w-5" /> },
+    { key: 'tracker', label: 'My Tracker', icon: <HiOutlineClipboardDocumentList className="h-5 w-5" />, badge: itemCount },
   ]
 
   return (
@@ -132,6 +178,11 @@ function Sidebar({
           >
             {item.icon}
             <span className="font-medium">{item.label}</span>
+            {item.badge != null && item.badge > 0 && (
+              <span className="ml-auto text-[10px] bg-primary/15 text-primary px-1.5 py-0.5 rounded-full font-semibold">
+                {item.badge}
+              </span>
+            )}
           </button>
         ))}
       </nav>
@@ -209,17 +260,84 @@ export default function Page() {
   const [activePage, setActivePage] = useState<PageView>('dashboard')
   const [showSample, setShowSample] = useState(false)
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
+  const [isHydrated, setIsHydrated] = useState(false)
 
-  // Shared state
+  // Shared state - initialized from localStorage
   const [trackedItems, setTrackedItems] = useState<TrackedItem[]>([])
   const [researchItems, setResearchItems] = useState<ResearchItem[]>([])
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [sessionId, setSessionId] = useState('')
 
-  // Generate session ID on mount
+  // Load persisted data on mount (client-side only)
   useEffect(() => {
-    setSessionId(`session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`)
+    const storedTracked = loadFromStorage<TrackedItem[]>(STORAGE_KEYS.trackedItems, [])
+    const storedResearch = loadFromStorage<ResearchItem[]>(STORAGE_KEYS.researchItems, [])
+    const storedMessages = loadFromStorage<ChatMessage[]>(STORAGE_KEYS.chatMessages, [])
+    const sid = getOrCreateSessionId()
+
+    setTrackedItems(storedTracked)
+    setResearchItems(storedResearch)
+    setChatMessages(storedMessages)
+    setSessionId(sid)
+    setIsHydrated(true)
   }, [])
+
+  // Persist trackedItems whenever they change
+  useEffect(() => {
+    if (isHydrated) {
+      saveToStorage(STORAGE_KEYS.trackedItems, trackedItems)
+    }
+  }, [trackedItems, isHydrated])
+
+  // Persist researchItems whenever they change
+  useEffect(() => {
+    if (isHydrated) {
+      saveToStorage(STORAGE_KEYS.researchItems, researchItems)
+    }
+  }, [researchItems, isHydrated])
+
+  // Persist chatMessages whenever they change
+  useEffect(() => {
+    if (isHydrated) {
+      saveToStorage(STORAGE_KEYS.chatMessages, chatMessages)
+    }
+  }, [chatMessages, isHydrated])
+
+  // Force re-extract items from chat messages (useful for refresh)
+  const reExtractFromChat = useCallback(() => {
+    const allTracked: TrackedItem[] = []
+    const allResearch: ResearchItem[] = []
+    const seenTrackedTitles = new Set<string>()
+    const seenResearchTitles = new Set<string>()
+
+    for (const msg of chatMessages) {
+      if (msg.sender === 'assistant') {
+        if (Array.isArray(msg.trackedItems)) {
+          for (const item of msg.trackedItems) {
+            const key = item.title?.toLowerCase() || ''
+            if (key && !seenTrackedTitles.has(key)) {
+              seenTrackedTitles.add(key)
+              allTracked.push(item)
+            }
+          }
+        }
+        if (Array.isArray(msg.researchItems)) {
+          for (const item of msg.researchItems) {
+            const key = item.title?.toLowerCase() || ''
+            if (key && !seenResearchTitles.has(key)) {
+              seenResearchTitles.add(key)
+              allResearch.push(item)
+            }
+          }
+        }
+      }
+    }
+
+    setTrackedItems(allTracked)
+    setResearchItems(allResearch)
+  }, [chatMessages])
+
+  const totalItemCount = trackedItems.length + researchItems.length
 
   return (
     <ErrorBoundary>
@@ -232,6 +350,7 @@ export default function Page() {
             showSample={showSample}
             setShowSample={setShowSample}
             activeAgentId={activeAgentId}
+            itemCount={totalItemCount}
           />
         </div>
 
@@ -260,6 +379,7 @@ export default function Page() {
               sessionId={sessionId}
               onNavigateChat={() => setActivePage('chat')}
               showSample={showSample}
+              onRefreshItems={reExtractFromChat}
             />
           )}
           {activePage === 'chat' && (
@@ -281,6 +401,7 @@ export default function Page() {
               researchItems={researchItems}
               showSample={showSample}
               onNavigateChat={() => setActivePage('chat')}
+              onRefreshItems={reExtractFromChat}
             />
           )}
 

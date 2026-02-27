@@ -77,6 +77,7 @@ interface DashboardSectionProps {
   sessionId: string
   onNavigateChat: () => void
   showSample: boolean
+  onRefreshItems: () => void
 }
 
 const DIGEST_AGENT_ID = '69a15d3ee64a6ab5efd55bc0'
@@ -155,6 +156,7 @@ export default function DashboardSection({
   sessionId,
   onNavigateChat,
   showSample,
+  onRefreshItems,
 }: DashboardSectionProps) {
   const [digestData, setDigestData] = useState<DigestData | null>(null)
   const [digestLoading, setDigestLoading] = useState(false)
@@ -292,13 +294,26 @@ export default function DashboardSection({
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Greeting Banner */}
       <div className="bg-card rounded-[0.625rem] border border-border p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-foreground font-sans">
-          Welcome to StudentLife
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
-          <HiOutlineCalendar className="h-4 w-4" />
-          {currentDate || 'Loading...'}
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground font-sans">
+              Welcome to StudentLife
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
+              <HiOutlineCalendar className="h-4 w-4" />
+              {currentDate || 'Loading...'}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onRefreshItems}
+            className="text-xs flex items-center gap-1.5"
+          >
+            <HiOutlineArrowRight className="h-3.5 w-3.5 rotate-[225deg]" />
+            Sync Items
+          </Button>
+        </div>
       </div>
 
       {/* Two column layout */}
