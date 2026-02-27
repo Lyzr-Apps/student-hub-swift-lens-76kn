@@ -1,0 +1,38 @@
+{
+  "agent_name": "Academic Tracker Agent",
+  "agent_id": "69a15d1402d3bc2aa3ecac16",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "The main conversational response to the student"
+      },
+      "tracked_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "category": { "type": "string", "description": "One of: Assignment, Exam, Project, Event, Extracurricular, Deadline" },
+            "date": { "type": "string", "description": "Date in YYYY-MM-DD format or empty string if unknown" },
+            "description": { "type": "string" },
+            "status": { "type": "string", "description": "One of: upcoming, overdue, completed" }
+          },
+          "required": ["title", "category", "date", "description", "status"],
+          "additionalProperties": false
+        },
+        "description": "List of academic items mentioned or relevant to the query"
+      },
+      "summary": {
+        "type": "string",
+        "description": "Brief summary of the response for quick display"
+      }
+    },
+    "required": ["message", "tracked_items", "summary"],
+    "additionalProperties": false
+  }
+}

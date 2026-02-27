@@ -1,0 +1,42 @@
+{
+  "agent_name": "Career & Research Agent",
+  "agent_id": "69a15d14c630aea0386ccc15",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "The main conversational response with research findings"
+      },
+      "research_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "category": { "type": "string", "description": "One of: College, Career, Internship, Research" },
+            "summary": { "type": "string" },
+            "key_facts": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "source": { "type": "string", "description": "Source URL or reference" }
+          },
+          "required": ["title", "category", "summary", "key_facts", "source"],
+          "additionalProperties": false
+        },
+        "description": "Structured research findings"
+      },
+      "recommendations": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Actionable next steps or recommendations"
+      }
+    },
+    "required": ["message", "research_items", "recommendations"],
+    "additionalProperties": false
+  }
+}

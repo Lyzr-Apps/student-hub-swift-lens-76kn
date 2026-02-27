@@ -1,0 +1,75 @@
+{
+  "agent_name": "Daily Digest Agent",
+  "agent_id": "69a15d3ee64a6ab5efd55bc0",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "is_scheduled": true,
+  "schedule_id": "69a15d4325d4d77f732eb773",
+  "cron_expression": "0 7 * * *",
+  "timezone": "America/New_York",
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "greeting": {
+        "type": "string",
+        "description": "Morning greeting message"
+      },
+      "date": {
+        "type": "string",
+        "description": "Today's date in readable format"
+      },
+      "urgent_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "category": { "type": "string" },
+            "date": { "type": "string" },
+            "urgency": { "type": "string", "description": "One of: overdue, today, tomorrow, this_week" }
+          },
+          "required": ["title", "category", "date", "urgency"],
+          "additionalProperties": false
+        },
+        "description": "Items that need immediate attention"
+      },
+      "upcoming_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "category": { "type": "string" },
+            "date": { "type": "string" },
+            "description": { "type": "string" }
+          },
+          "required": ["title", "category", "date", "description"],
+          "additionalProperties": false
+        },
+        "description": "Items coming up in the next 7 days"
+      },
+      "stats": {
+        "type": "object",
+        "properties": {
+          "total_upcoming": { "type": "number" },
+          "exams_count": { "type": "number" },
+          "assignments_count": { "type": "number" },
+          "events_count": { "type": "number" }
+        },
+        "required": ["total_upcoming", "exams_count", "assignments_count", "events_count"],
+        "additionalProperties": false
+      },
+      "tip_of_the_day": {
+        "type": "string",
+        "description": "A brief productivity or study tip"
+      },
+      "summary": {
+        "type": "string",
+        "description": "One-line summary of the day ahead"
+      }
+    },
+    "required": ["greeting", "date", "urgent_items", "upcoming_items", "stats", "tip_of_the_day", "summary"],
+    "additionalProperties": false
+  }
+}

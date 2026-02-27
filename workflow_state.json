@@ -1,0 +1,52 @@
+{
+  "app_name": "StudyHub",
+  "description": "Student life assistant with academic tracking, career research, and daily digest",
+  "agents": {
+    "academic_tracker": {
+      "agent_id": "69a15d1402d3bc2aa3ecac16",
+      "name": "Academic Tracker Agent",
+      "type": "sub_agent",
+      "provider": "openai",
+      "model": "gpt-4.1"
+    },
+    "career_research": {
+      "agent_id": "69a15d14c630aea0386ccc15",
+      "name": "Career & Research Agent",
+      "type": "sub_agent",
+      "provider": "perplexity",
+      "model": "sonar-pro"
+    },
+    "student_life_manager": {
+      "agent_id": "69a15d2b6bd1afebfd1b9deb",
+      "name": "Student Life Manager",
+      "type": "manager",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "managed_agents": [
+        "69a15d1402d3bc2aa3ecac16",
+        "69a15d14c630aea0386ccc15"
+      ]
+    },
+    "daily_digest": {
+      "agent_id": "69a15d3ee64a6ab5efd55bc0",
+      "name": "Daily Digest Agent",
+      "type": "independent",
+      "provider": "openai",
+      "model": "gpt-4.1"
+    }
+  },
+  "schedules": {
+    "daily_digest_schedule": {
+      "schedule_id": "69a15d4325d4d77f732eb773",
+      "agent_id": "69a15d3ee64a6ab5efd55bc0",
+      "cron_expression": "0 7 * * *",
+      "timezone": "America/New_York",
+      "message": "Generate the daily digest summary for the student. Compile all upcoming deadlines, exams, events, and reminders for the next 7 days. Provide a motivational greeting and a tip of the day.",
+      "is_active": false,
+      "max_retries": 2,
+      "retry_delay": 300
+    }
+  },
+  "primary_agent_id": "69a15d2b6bd1afebfd1b9deb",
+  "digest_agent_id": "69a15d3ee64a6ab5efd55bc0"
+}

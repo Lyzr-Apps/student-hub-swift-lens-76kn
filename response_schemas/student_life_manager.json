@@ -1,0 +1,68 @@
+{
+  "agent_name": "Student Life Manager",
+  "agent_id": "69a15d2b6bd1afebfd1b9deb",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "is_manager": true,
+  "managed_agents": ["69a15d1402d3bc2aa3ecac16", "69a15d14c630aea0386ccc15"],
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "The unified conversational response to the student"
+      },
+      "category": {
+        "type": "string",
+        "description": "One of: academic, career, mixed, general"
+      },
+      "tracked_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "category": { "type": "string" },
+            "date": { "type": "string" },
+            "description": { "type": "string" },
+            "status": { "type": "string" }
+          },
+          "required": ["title", "category", "date", "description", "status"],
+          "additionalProperties": false
+        },
+        "description": "Academic items tracked or recalled"
+      },
+      "research_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "category": { "type": "string" },
+            "summary": { "type": "string" },
+            "key_facts": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "source": { "type": "string" }
+          },
+          "required": ["title", "category", "summary", "key_facts", "source"],
+          "additionalProperties": false
+        },
+        "description": "Research findings from career/college queries"
+      },
+      "recommendations": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Actionable suggestions or next steps"
+      },
+      "summary": {
+        "type": "string",
+        "description": "Brief one-line summary of the response"
+      }
+    },
+    "required": ["message", "category", "tracked_items", "research_items", "recommendations", "summary"],
+    "additionalProperties": false
+  }
+}

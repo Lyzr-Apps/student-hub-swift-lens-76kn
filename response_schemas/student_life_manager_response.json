@@ -1,0 +1,64 @@
+{
+  "agent_name": "Student Life Manager",
+  "agent_id": "69a15d2b6bd1afebfd1b9deb",
+  "description": "Coordinates between academic tracking and career research sub-agents, routes student queries to the appropriate specialist, and aggregates responses into a unified conversational reply.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "message": "string",
+    "category": "string",
+    "tracked_items": [
+      {
+        "title": "string",
+        "category": "string",
+        "date": "string",
+        "description": "string",
+        "status": "string"
+      }
+    ],
+    "research_items": [
+      {
+        "title": "string",
+        "category": "string",
+        "summary": "string",
+        "key_facts": [
+          "string"
+        ],
+        "source": "string"
+      }
+    ],
+    "recommendations": [
+      "string"
+    ],
+    "summary": "string"
+  },
+  "example_response": {
+    "message": "The unified conversational response to the student",
+    "category": "One of: academic, career, mixed, general",
+    "tracked_items": [
+      {
+        "title": "sample string",
+        "category": "sample string",
+        "date": "sample string",
+        "description": "sample string",
+        "status": "sample string"
+      }
+    ],
+    "research_items": [
+      {
+        "title": "sample string",
+        "category": "sample string",
+        "summary": "sample string",
+        "key_facts": [
+          "sample string"
+        ],
+        "source": "sample string"
+      }
+    ],
+    "recommendations": [
+      "sample string"
+    ],
+    "summary": "Brief one-line summary of the response"
+  }
+}

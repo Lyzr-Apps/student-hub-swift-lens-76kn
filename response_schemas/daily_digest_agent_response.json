@@ -1,0 +1,64 @@
+{
+  "agent_name": "Daily Digest Agent",
+  "agent_id": "69a15d3ee64a6ab5efd55bc0",
+  "description": "Compiles a daily summary of upcoming deadlines, exams, events, and reminders based on tracked academic data and delivers it to the dashboard.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "greeting": "string",
+    "date": "string",
+    "urgent_items": [
+      {
+        "title": "string",
+        "category": "string",
+        "date": "string",
+        "urgency": "string"
+      }
+    ],
+    "upcoming_items": [
+      {
+        "title": "string",
+        "category": "string",
+        "date": "string",
+        "description": "string"
+      }
+    ],
+    "stats": {
+      "total_upcoming": "number",
+      "exams_count": "number",
+      "assignments_count": "number",
+      "events_count": "number"
+    },
+    "tip_of_the_day": "string",
+    "summary": "string"
+  },
+  "example_response": {
+    "greeting": "Morning greeting message",
+    "date": "Today's date in readable format",
+    "urgent_items": [
+      {
+        "title": "sample string",
+        "category": "sample string",
+        "date": "sample string",
+        "urgency": "One of: overdue, today, tomorrow, this_week"
+      }
+    ],
+    "upcoming_items": [
+      {
+        "title": "sample string",
+        "category": "sample string",
+        "date": "sample string",
+        "description": "sample string"
+      }
+    ],
+    "stats": {
+      "total_upcoming": 0,
+      "exams_count": 0,
+      "assignments_count": 0,
+      "events_count": 0
+    },
+    "tip_of_the_day": "A brief productivity or study tip",
+    "summary": "One-line summary of the day ahead"
+  }
+}
