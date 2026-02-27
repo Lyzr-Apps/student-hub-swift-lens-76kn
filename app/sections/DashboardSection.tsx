@@ -165,7 +165,8 @@ export default function DashboardSection({
   // Schedule state
   const [schedule, setSchedule] = useState<Schedule | null>(null)
   const [scheduleId, setScheduleId] = useState(SCHEDULE_ID_INITIAL)
-  const [scheduleLoading, setScheduleLoading] = useState(false)
+  const [scheduleLoading, setScheduleLoading] = useState(true)
+  const [scheduleError, setScheduleError] = useState(false)
   const [logs, setLogs] = useState<ExecutionLog[]>([])
   const [triggering, setTriggering] = useState(false)
   const [toggling, setToggling] = useState(false)
@@ -178,6 +179,7 @@ export default function DashboardSection({
 
   const loadSchedule = useCallback(async () => {
     setScheduleLoading(true)
+    setScheduleError(false)
     try {
       const result = await listSchedules()
       if (result.success && Array.isArray(result.schedules)) {
@@ -188,19 +190,30 @@ export default function DashboardSection({
           setSchedule(result.schedules[0])
           setScheduleId(result.schedules[0].id)
         }
+        setScheduleError(false)
+      } else {
+        setScheduleError(true)
       }
+    } catch {
+      setScheduleError(true)
+    }
+    try {
       const logsResult = await getScheduleLogs(scheduleId, { limit: 5 })
       if (logsResult.success && Array.isArray(logsResult.executions)) {
         setLogs(logsResult.executions)
       }
     } catch {
-      // ignore
+      // ignore - logs may fail independently
     }
     setScheduleLoading(false)
   }, [scheduleId])
 
+  // Delay initial schedule load to let the proxy settle
   useEffect(() => {
-    loadSchedule()
+    const timer = setTimeout(() => {
+      loadSchedule()
+    }, 1500)
+    return () => clearTimeout(timer)
   }, [loadSchedule])
 
   const handleToggleSchedule = async () => {
@@ -599,6 +612,13 @@ export default function DashboardSection({
                 <div className="space-y-2">
                   <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
                   <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+                </div>
+              ) : scheduleError && !schedule ? (
+                <div className="text-center py-4">
+                  <p className="text-xs text-muted-foreground mb-2">Could not load schedule data</p>
+                  <Button size="sm" variant="outline" onClick={loadSchedule} className="text-xs">
+                    Retry
+                  </Button>
                 </div>
               ) : (
                 <>
